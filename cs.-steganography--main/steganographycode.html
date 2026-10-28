@@ -1,0 +1,74 @@
+import cv2
+import os
+import hashlib
+
+# Specify the path to the encrypted image
+encrypted_image_path = r"C:\Users\adida\OneDrive\Desktop\New folder (2)\encryptedImage.jpg"
+
+# Read the encrypted image
+encrypted_img = cv2.imread(encrypted_image_path)
+
+# Check if the encrypted image is successfully loaded
+if encrypted_img is None:
+    print("Encrypted image not found. Check the file path and make sure the image exists.")
+    exit()
+
+# Get the dimensions of the encrypted image
+height, width, channels = encrypted_img.shape
+
+# Prompt the user to input the password used for encoding
+password = input("Enter the passcode used for encoding: ")
+
+# Hash the password using SHA-256
+hash_object = hashlib.sha256(password.encode())
+hashed_password = hash_object.digest()
+
+# Initialize dictionaries for mapping characters to their ASCII values and vice versa
+d = {}
+c = {}
+
+# Fill the dictionaries with ASCII values (0-255)
+for i in range(256):
+    d[chr(i)] = i  # Character to ASCII
+    c[i] = chr(i)  # ASCII to character
+
+# Initialize variables for image coordinates and color channel
+n = 0  # Row index
+m = 0  # Column index
+z = 0  # Color channel index
+
+# Initialize an empty list to store decoded characters
+decoded_message = []
+
+# Decode the secret message from the encrypted image using the hashed password
+for i in range(len(msg)):
+    # Retrieve the encoded value from the encrypted image
+    encoded_value = int(encrypted_img[n, m, z])
+    
+    # Decode the original value using the hashed password
+    original_value = (encoded_value - d[msg[i]] - hashed_password[i % len(hashed_password)]) % 256
+    
+    # Convert the original value back to a character and add it to the decoded message
+    decoded_char = c[original_value]
+    decoded_message.append(decoded_char)
+    
+    # Move to the next pixel
+    m += 1
+    
+    # If the column index exceeds the image width, reset it and move to the next row
+    if m >= width:
+        m = 0
+        n += 1
+    
+    # If the row index exceeds the image height, stop decoding
+    if n >= height:
+        break
+    
+    # Cycle through the color channels (0, 1, 2) for RGB
+    z = (z + 1) % 3
+
+# Join the decoded characters into the final message
+decoded_message = ''.join(decoded_message)
+
+# Print the decoded message
+print(f"Decoded message: {decoded_message}")
